@@ -1,0 +1,9 @@
+[package]
+name = "edwar/lobby"
+version = "0.1.0"
+registry = "https://github.com/UpliftGames/wally-index"
+realm = "shared"
+
+[dependencies]
+documentservice = "anthony0br/documentservice@1.2.2"
+guard = "red-blox/guard@1.0.1"

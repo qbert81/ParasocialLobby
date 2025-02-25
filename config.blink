@@ -1,0 +1,30 @@
+option ClientOutput = "src/client/services/blinkClient.luau"
+option ServerOutput = "src/server/services/blinkServer.luau"
+option Casing = Pascal
+
+
+
+map ItemMap = {[u8]: boolean}
+map EquippedMap = {[u8]: u8}
+
+struct PlayerData {
+    Gadgets : ItemMap,
+    EquippedGadgets : EquippedMap,
+    Emotes : ItemMap,
+    EquippedEmotes : EquippedMap,
+    
+    Bits : u32,
+    
+    Wins : u16,
+    FastestWin : f64,
+    Level: u16,
+    Xp: u32,
+
+    GamepassDictionary : map {[string]: boolean},
+    DeveloperProductPurchases : map {[string]: u16}
+}
+
+function FetchPlayerData {
+    Yield: Coroutine,
+    Return: PlayerData?
+}

@@ -1,0 +1,11 @@
+PROJECT STRUCTURE
+Project structure
+-Server
+-Client
+-Shared
+
+Each of these has 2 folders libraries and services
+-1 exception is Shared has a packages folder which are packages installed using wally basically just more libraries but its called that for easy updates
+
+Libraries contain utilities used by servicices
+services have an init function.
