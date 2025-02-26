@@ -12,10 +12,13 @@ CharacterUtils.GetAttachment = function(character : Model, name : string) : Atta
 	local curElem : Instance? = character
 	if parents and curElem then
 		for _, v in parents do
+
 			curElem = curElem:FindFirstChild(v) :: Instance?
+			print(curElem, v)
 			if not curElem then return end
 		end
-		curElem = curElem:FindFirstChild(name)
+		return curElem:FindFirstChild(name) :: Attachment?
+		
 	end
 	return 
 end

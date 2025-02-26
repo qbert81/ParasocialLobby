@@ -287,14 +287,14 @@ local function AllItemsContainer(uiValues : sharedValuesTable.sharedValuesTable,
 				AspectRatio = 1
 			},
 			scope:New("UIPadding") {
-				PaddingBottom = UDim.new(.02,0),
+				PaddingBottom = UDim.new(.01,0),
 				PaddingRight = UDim.new(.0,0),
 				PaddingLeft = UDim.new(.02,0),
-				PaddingTop = UDim.new(.02*2,0)
+				PaddingTop = UDim.new(.01*2,0)
 			},
 			scope:New("UIGridLayout") {
-				CellSize = UDim2.new(.23, 0,.23, 0),
-				CellPadding = UDim2.fromScale(.02,.02)
+				CellSize = UDim2.new(.23, 0,.24, 0),
+				CellPadding = UDim2.fromScale(.01,.01)
 			},
 			defaultUICorner(scope),
 			itemCellHolders :: any
@@ -361,8 +361,8 @@ local function Container(uiValues : sharedValuesTable.sharedValuesTable, props :
 
 	local left = scope:New("CanvasGroup") {
 		Size = UDim2.new(sideContainerWidth,0,.5,0),
-		AnchorPoint = Vector2.new(0,.5),
-		Position = UDim2.new(0,0,.5,0),
+		AnchorPoint = Vector2.new(0,0),
+		Position = UDim2.new(0,0,0,0),
 		BackgroundColor3 = Color3.new(0.180392, 0.180392, 0.180392),
 		BackgroundTransparency = 1,
 		[Children] = {
@@ -372,7 +372,7 @@ local function Container(uiValues : sharedValuesTable.sharedValuesTable, props :
 			},
 			scope:New("UIListLayout") {
 				SortOrder = Enum.SortOrder.LayoutOrder,
-				Padding = UDim.new(.02,0)
+				Padding = UDim.new(.0,5)
 			},
 			defaultChildren() :: any,
 			HeaderTextLabel(scope, {
@@ -386,10 +386,10 @@ local function Container(uiValues : sharedValuesTable.sharedValuesTable, props :
 	}
 	local right = scope:New("CanvasGroup") {
 		Size = UDim2.new(sideContainerWidth,0,1,0),
-		Position = UDim2.new(1,0,.5,0),
-		AnchorPoint = Vector2.new(1,.5),
+		Position = UDim2.new(1,0,0,0),
+		AnchorPoint = Vector2.new(1,0),
 		BackgroundColor3 = Color3.new(0.180392, 0.180392, 0.180392),
-		BackgroundTransparency = .4,
+		BackgroundTransparency = 1,
 		[Children] = {
 			scope:New("UIAspectRatioConstraint") {
 				AspectRatio = .7
@@ -397,18 +397,29 @@ local function Container(uiValues : sharedValuesTable.sharedValuesTable, props :
 			defaultChildren() :: any,
 			scope:New("UIListLayout") {
 				SortOrder = Enum.SortOrder.LayoutOrder,
-				Padding = UDim.new(.02,0)
+				Padding = UDim.new(0,5)
 			},
 			HeaderTextLabel(scope, {
 				text = 
 				("ALL " .. (string.upper(props.sectionName :: string))),
 				layoutOrder = 1,
-				size = UDim2.fromScale(1, 0.1/1.5*.7)
+				size = UDim2.fromScale(1, (0.1/1.5)*.7)
 			}) :: any,
 			AllItemsContainer(uiValues, menuRenderData, {layoutOrder = 2,sectionName = props.sectionName}) :: any
 		}
 	}
-	return {left, right}
+	local center = scope:New("CanvasGroup") {
+		Size = UDim2.new(sideContainerWidth,0,.4,0),
+		Position = UDim2.new(.5,0,.8,0),
+		AnchorPoint = Vector2.new(.5,.5),
+		BackgroundColor3 = Color3.new(0.180392, 0.180392, 0.180392),
+		BackgroundTransparency = .6,
+		Visible = uiValues,
+		[Children] = {
+			
+		}
+	}
+	return {left, right, center}
 end
 
 

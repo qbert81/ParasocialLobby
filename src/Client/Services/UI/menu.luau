@@ -10,9 +10,11 @@ local baseComponents = require(script.Parent.baseComponents)
 local RF = game:GetService("ReplicatedFirst")
 local UIAssets = RF:WaitForChild("Assets"):WaitForChild("UI")
 local Images = UIAssets:WaitForChild("Images"):WaitForChild("Menu")
+local BitsImageLabel : ImageLabel = UIAssets:WaitForChild("Images"):WaitForChild("Shop"):WaitForChild("Bit") :: ImageLabel
 local Sounds = UIAssets:WaitForChild("Sounds")
 local ButtonHoverSound = Sounds:WaitForChild("Button"):WaitForChild("ButtonHover")
 local ButtonClickSound = Sounds:WaitForChild("Button"):WaitForChild("ButtonClick")
+local BaseComponents = require(script.Parent:WaitForChild("baseComponents"))
 
 local Player = game.Players.LocalPlayer
 
@@ -21,6 +23,103 @@ local sections : {string} = CONFIG.sections
 local sectionColors = CONFIG.sectionColors
 
 type UsedAs<T> = Fusion.UsedAs<T>
+
+
+
+local function Bits(uiValues : sharedValuesTable.sharedValuesTable) : Fusion.Child
+	local scope = uiValues.scope 
+	return BaseComponents.ImageButton(scope, { --this is the close button
+                Name = "Close",
+                OnClick = function() uiValues.targetMenu:set("Shop") end,
+                Layout = {
+                    Size = UDim2.fromScale(.25, .5),
+                    AnchorPoint = Vector2.new(.5,.5),
+                    Position = UDim2.fromScale(.15,.3),
+                    LayoutOrder = 5, 
+                },
+                CornerRadius = UDim.new(.3,0),
+                AspectRatio = 3,
+                BackgroundColor = Color3.new(0,0,0),
+                Children = {
+                    scope:New("TextLabel") {
+                        Size = UDim2.fromScale(2/3, 1),
+                        AnchorPoint = Vector2.new(.5,.5),
+                        Position = UDim2.fromScale(4/6,.5),
+                        BackgroundTransparency = 1,
+                        TextColor3 = Color3.new(1,1,1),
+                        Font = CONFIG.font,
+                        TextScaled = true,
+                        Text = scope:Computed(function(use) 
+                            return use(uiValues.playerData).Bits
+                        end)
+                            
+                    },
+                    BaseComponents.ContainedImageLabel(scope, {
+                        ContainerFrame = {
+                            BackgroundColor = Color3.new(0,0,0),
+                            BackgroundTransparency = 1,
+                            Size = UDim2.fromScale(1, 1),
+                            AnchorPoint = Vector2.new(.5,.5),
+                            Position = UDim2.fromScale(1/6, .5)
+                    },
+                    ImageLabel = {
+                        Size = UDim2.new(1,0,1,0),
+                        ImageId = BitsImageLabel.Image
+                    },
+                    CornerRadius = CONFIG.defaultCornerRadius,
+
+                }),
+                scope:New("UIPadding") {
+                    PaddingBottom = UDim.new(.1,0),
+                    PaddingTop = UDim.new(.1,0),
+                    PaddingLeft = UDim.new(.1,0),
+                    PaddingRight = UDim.new(.1,0)
+                }
+            }
+    })
+end
+
+local function CloseButton(uiValues : sharedValuesTable.sharedValuesTable) : Fusion.Child
+    local scope = uiValues.scope
+    return BaseComponents.ImageButton(scope, { --this is the close button
+                Name = "Close",
+                OnClick = function() uiValues.targetMenu:set("None") end,
+                Layout = {
+                    Size = UDim2.fromScale(.2, .5),
+                    AnchorPoint = Vector2.new(.5,.5),
+                    Position = UDim2.fromScale(.8,.3),
+                    LayoutOrder = 5,
+                },
+                CornerRadius = UDim.new(.3,0),
+                Visible = scope:Computed(function(use) 
+                    return if use(uiValues.currentViewingMenu) == "None" then false else true
+                end),
+                AspectRatio = 1,
+                BackgroundColor = Color3.new(0.074510, 0.074510, 0.074510),
+                Children = {
+                    BaseComponents.ContainedImageLabel(scope, {
+                        ContainerFrame = {
+                            BackgroundColor = Color3.new(0,0,0),
+                            Size = UDim2.fromScale(1, 1),
+                            AnchorPoint = Vector2.new(.5,.5),
+                            Position = UDim2.fromScale(.5, .5)
+                        },
+                    ImageLabel = {
+                        Size = UDim2.new(1,0,1,0),
+                        ImageId = "rbxassetid://132261474823036"
+                    },
+
+                    CornerRadius = CONFIG.defaultCornerRadius
+                }),
+                scope:New("UIPadding") {
+                    PaddingBottom = UDim.new(.1,0),
+                    PaddingTop = UDim.new(.1,0),
+                    PaddingLeft = UDim.new(.1,0),
+                    PaddingRight = UDim.new(.1,0)
+                }
+            }
+    })
+end
 
 local function MenuButton(
     uiValues : sharedValuesTable.sharedValuesTable,
@@ -127,7 +226,6 @@ local function MenuButton(
             hovered:set(false)
         end,
     }
-	
 end
 local function Menu(
     uiValues : sharedValuesTable.sharedValuesTable,
@@ -140,7 +238,7 @@ local function Menu(
     return scope:New "CanvasGroup" {
         Name = props.Name,
 		BackgroundTransparency = 1,
-		Size = UDim2.fromScale(0.4,0.2),
+		Size = UDim2.fromScale(0.8,0.2),
 		AnchorPoint = Vector2.new(.5,0),
 		Position = UDim2.fromScale(.5, 0),
 
@@ -148,28 +246,42 @@ local function Menu(
                 return if use(uiValues.currentViewingMenu) == "None" then true else true
         end),
 		[Children] = {
-			scope:New "UIListLayout" {
-                VerticalAlignment = "Top",
-                HorizontalAlignment = "Center",
-                FillDirection = "Horizontal",
-                HorizontalFlex = "SpaceEvenly",
+            Bits(uiValues),
+            scope:New("Frame") {
+                Size = UDim2.fromScale(.5, 1),
+                Position = UDim2.fromScale(.5, .5),
+                AnchorPoint = Vector2.new(.5,.5),
+                BackgroundTransparency = 1,
+                [Children] = {
+                    scope:New "UIListLayout" {
+                        VerticalAlignment = "Top",
+                        HorizontalAlignment = "Center",
+                        FillDirection = "Horizontal",
+                        HorizontalFlex = "SpaceEvenly",
+                        SortOrder = Enum.SortOrder.LayoutOrder
+                    },
+                    scope:ForValues(sections, function(_use, _scope, value : string)
+                        if value ~= "None" then 
+                        local ImageLabel = Images:WaitForChild(value) :: ImageLabel
+                        if ImageLabel then
+                            return MenuButton(uiValues, {Name = value, ImageId = ImageLabel.Image})
+                        end
+                    end
+                        return
+                    end),
+                    
+                    
+                }
             },
-            scope:ForValues(sections, function(_use, _scope, value : string)
-                if value ~= "None" then 
-                local ImageLabel = Images:WaitForChild(value) :: ImageLabel
-                if ImageLabel then
-                    return MenuButton(uiValues, {Name = value, ImageId = ImageLabel.Image})
-                end
-            end
-                return
-            end),
+            CloseButton(uiValues),
             scope:New("UIPadding") {
                 PaddingBottom = UDim.new(.1,0),
                 PaddingTop = UDim.new(.1,0)
             },
             scope:New("UIAspectRatioConstraint") {
-                AspectRatio =  2.5
+                AspectRatio =  5
             }, 
+			
 		}
     }
 	

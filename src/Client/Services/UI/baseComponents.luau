@@ -48,6 +48,7 @@ function BaseComponents.ContainedImageLabel(
             Size: UsedAs<UDim2>?,
             AutomaticSize: UsedAs<Enum.AutomaticSize>?,
             BackgroundColor: UsedAs<Color3>?,
+            BackgroundTransparency : UsedAs<number>?
         },
         ImageLabel: {
             ImageId: UsedAs<string>?,
@@ -66,6 +67,7 @@ function BaseComponents.ContainedImageLabel(
         ZIndex = props.ContainerFrame.ZIndex,
         Size = props.ContainerFrame.Size,
         BackgroundColor3 = props.ContainerFrame.BackgroundColor,
+        BackgroundTransparency = props.ContainerFrame.BackgroundTransparency,
         [Children] = {
             scope:New("UICorner") {
                 CornerRadius = props.CornerRadius

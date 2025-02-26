@@ -31,10 +31,10 @@ local function fetchGadgetDetails(gadgetId : number) : gadgetDictionary.GadgetDe
 end
 local function fetchGadgetModel(gadgetName : string) : Model?
 	local GadgetFolder = GadgetAssetsFolder:WaitForChild(gadgetName) :: Folder?
-	if(GadgetFolder) then
+	if GadgetFolder then
 		local GadgetModel = GadgetFolder:WaitForChild(gadgetName) :: Model
-		if(GadgetModel) then
-			return GadgetModel
+		if GadgetModel then
+			return GadgetModel:Clone()
 		end
 		warn("NO MODEL FOUND FOR GADGET " .. gadgetName)
 	end
@@ -45,6 +45,7 @@ end
 local function defaultSetupOnCharacter(character : Model, GadgetModel : Model)
 	local AttachmentName = GadgetModel:GetAttribute("ConnectToCharacterAt") :: string or "RightGripAttachment"
 	local foundAttachment : Attachment? = CharacterUtils.GetAttachment(character, AttachmentName)
+	print(foundAttachment)
 	if foundAttachment then
 		local primaryPart = GadgetModel.PrimaryPart
 		if primaryPart then
@@ -76,6 +77,13 @@ end
 function InventoryBaseGadget:setupOnCharacter() : nil
 	self = self :: InventoryBaseGadget
 	local childScript = script:FindFirstChild("name")
+	if self.model then
+		for _, v in self.model:GetDescendants() do
+			if v:IsA("BasePart") then
+				v.Anchored = false
+			end
+		end
+	end
 	if childScript and childScript.setupOnCharacter then 
 		childScript.setupOnCharacter(self.character, self.model) 
 	else
