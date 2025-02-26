@@ -38,8 +38,7 @@ local function CharacterReplica( uiValues : sharedValuesTable.sharedValuesTable)
 		local defualtIdleTrack = animator:LoadAnimation(defaultIdleAnim)
 		defualtIdleTrack.Looped = true
 		defualtIdleTrack:Play()
-		--local observer = uiValues.scope:Observer(uiValues.currentViewingMenu)
-
+		uiValues.characterClone = characterClone
 end)
   
 end

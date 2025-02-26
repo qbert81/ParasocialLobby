@@ -68,7 +68,6 @@ local function itemVPF(scope : Fusion.Scope, cellMenuRenderData : cellMenuRender
 						task.delay(ti.Time, function()
 							hasCompletedRotation:set(not Fusion.peek(hasCompletedRotation))
 						end)
-						print(Fusion.peek(hasCompletedRotation))
 						if _use(hasCompletedRotation) then 
 							return Vector3.new(0,-90,0) 
 							
@@ -118,7 +117,8 @@ local function itemVPF(scope : Fusion.Scope, cellMenuRenderData : cellMenuRender
 	}
 end
 
-local function ItemCell(scope : Fusion.Scope, cellMenuRenderData : cellMenuRenderData, isGadget : boolean) : Fusion.Child?
+local function ItemCell(uiValues : sharedValuesTable.sharedValuesTable, cellMenuRenderData : cellMenuRenderData, isGadget : boolean) : Fusion.Child?
+	local scope = uiValues.scope
 	local hovered = scope:Value(false)
 	local tableToTrack = if cellMenuRenderData.isEquippedCell then cellMenuRenderData.equippedTable else cellMenuRenderData.allTable
 	local itemID = scope:Computed(function(use)
@@ -191,16 +191,20 @@ local function ItemCell(scope : Fusion.Scope, cellMenuRenderData : cellMenuRende
 							}
 						}
 					},
-					Hovered = hovered
+					Hovered = hovered,
+					OnClick = function() 
+						print(cellMenuRenderData.index)
+						uiValues.vieiwngItem:set(cellMenuRenderData.index)
+					end
 				}) 
 			end
 	end)
 end
-local function ItemCellHolder(scope : Fusion.Scope, 
+local function ItemCellHolder(uiValues : sharedValuesTable.sharedValuesTable, 
 	cellMenuRenderData : cellMenuRenderData, 
 	isGadget : boolean
 ) : Fusion.Child
-	
+	local scope = uiValues.scope
 	return scope:New("Frame") {
 		--size is defined in grid layout
 		BackgroundColor3 = CONFIG.primaryColor,
@@ -210,12 +214,13 @@ local function ItemCellHolder(scope : Fusion.Scope,
 			scope:New("UIAspectRatioConstraint") {
 				AspectRatio = 1
 			},
-			ItemCell(scope, cellMenuRenderData, isGadget) :: Instance
+			ItemCell(uiValues, cellMenuRenderData, isGadget) :: Instance
 		},
 	}
 end
 
-local function EquippedItemsContainer(scope : Fusion.Scope, menuRenderData : menuRenderData, props : {layoutOrder : UsedAs<number>?, sectionName : UsedAs<string>?}) : Fusion.Child
+local function EquippedItemsContainer(uiValues : sharedValuesTable.sharedValuesTable, menuRenderData : menuRenderData, props : {layoutOrder : UsedAs<number>?, sectionName : UsedAs<string>?}) : Fusion.Child
+	local scope = uiValues.scope
 	local isGadget = props.sectionName == "Gadgets"
 	local childItemCells : {Fusion.Child} = {}
 	for i=1, 8 do
@@ -227,11 +232,11 @@ local function EquippedItemsContainer(scope : Fusion.Scope, menuRenderData : men
 			index = i,
 			isEquippedCell = true
 		}
-		local newCellHolder = ItemCellHolder(scope, cellMenuRenderData, isGadget)
+		local newCellHolder = ItemCellHolder(uiValues, cellMenuRenderData, isGadget)
 		childItemCells[i] = newCellHolder
 	end
 
-	local component =  scope:New("CanvasGroup") {
+	local component = scope:New("CanvasGroup") {
 		LayoutOrder = props.layoutOrder,
 		BackgroundTransparency = 1,
 		BackgroundColor3 = Color3.new(0.274510, 0.274510, 0.274510),
@@ -255,7 +260,8 @@ local function EquippedItemsContainer(scope : Fusion.Scope, menuRenderData : men
 	return component
 end
 
-local function AllItemsContainer(scope : Fusion.Scope, menuRenderData : menuRenderData, props : {layoutOrder : UsedAs<number>?, sectionName : UsedAs<string>?}) : Fusion.Child
+local function AllItemsContainer(uiValues : sharedValuesTable.sharedValuesTable, menuRenderData : menuRenderData, props : {layoutOrder : UsedAs<number>?, sectionName : UsedAs<string>?}) : Fusion.Child
+	local scope = uiValues.scope
 	local isGadget = props.sectionName == "Gadgets"
 	local itemCellHolders : {Fusion.Child} = {}
 	for i, _v in menuRenderData.assets.Dictionary do
@@ -268,7 +274,7 @@ local function AllItemsContainer(scope : Fusion.Scope, menuRenderData : menuRend
 			isEquippedCell = false
 		}
 
-		itemCellHolders[i] = ItemCellHolder(scope, cellMenuRenderData, isGadget)
+		itemCellHolders[i] = ItemCellHolder(uiValues, cellMenuRenderData, isGadget)
 	end
 
 	local Container = scope:New("CanvasGroup") {
@@ -375,7 +381,7 @@ local function Container(uiValues : sharedValuesTable.sharedValuesTable, props :
 				layoutOrder = 1,
 				size = UDim2.fromScale(1, .1)
 			}) :: any,
-			EquippedItemsContainer(uiValues.scope, menuRenderData, {sectionName = props.sectionName, layoutOrder = 2}) :: Instance,
+			EquippedItemsContainer(uiValues, menuRenderData, {sectionName = props.sectionName, layoutOrder = 2}) :: Instance,
 		}
 	}
 	local right = scope:New("CanvasGroup") {
@@ -399,7 +405,7 @@ local function Container(uiValues : sharedValuesTable.sharedValuesTable, props :
 				layoutOrder = 1,
 				size = UDim2.fromScale(1, 0.1/1.5*.7)
 			}) :: any,
-			AllItemsContainer(scope, menuRenderData, {layoutOrder = 2,sectionName = props.sectionName}) :: any
+			AllItemsContainer(uiValues, menuRenderData, {layoutOrder = 2,sectionName = props.sectionName}) :: any
 		}
 	}
 	return {left, right}
