@@ -12,6 +12,7 @@ local PlayerDataFormat = require(ReplicatedStorage.Shared.Libraries.PlayerDataDi
 
 
 local DataFetching = require(script.dataFetching)
+local DataMutate = require(script.dataMutate)
 
 type DataSchema = PlayerDataFormat.PlayerData
  
@@ -21,6 +22,7 @@ local function dataCheck(value: any): DataSchema
     local formatted : {[any] : any} = {}
 
     for i, v in value  do
+        print(i, v)
         formatted[i] = PlayerDataFormat.DataInterface[i](v)
     end
 	return formatted
@@ -30,7 +32,7 @@ local defaultTable = PlayerDataFormat.newPlayerData()
 local store : DocumentService.DocumentStore<any> = nil
 if not store then
     store = DocumentService.DocumentStore.new({
-        dataStore = DataStoreService:GetDataStore("TestV4") :: any,
+        dataStore = DataStoreService:GetDataStore("TestV11") :: any,
         check = Guard.Check(dataCheck),
         default = defaultTable,
         migrations = {
@@ -42,22 +44,23 @@ if not store then
 end
 
 DataFetching.init(store)
+DataMutate.init(store)
 
 --connect to Communications
 blinkServer.FetchPlayerData.On(function(player: Player)
-
         local playerDocument : DocumentService.Document<any> = store:GetDocument(tostring(player.UserId))
         print(playerDocument)
         if playerDocument then
-            local result = playerDocument:Read()
+            local result = playerDocument:GetCache()
             print(result)
-            if result.success then
-                return result.data
+            if result then
+                return result
             else
                 warn("Failed to read player document: " .. result.reason)
             end
         end
     return nil
 end)
+
 return store
 

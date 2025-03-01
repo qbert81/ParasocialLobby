@@ -116,6 +116,7 @@ function BaseComponents.ImageButton(
         BackgroundTransparency : UsedAs<number>?,
 
         Disabled: UsedAs<boolean>?,
+        Interactable : UsedAs<boolean>?,
         Hovered : Fusion.Value<boolean>?,
         OnClick: (() -> ())?,
         Children : {Fusion.Child}?,
@@ -125,7 +126,7 @@ function BaseComponents.ImageButton(
     local hovered = props.Hovered or scope:Value(false)
     local isHeldDown = scope:Value(false)
     local baseSize =  props.Layout.Size :: UDim2
-    local _heldDownSize = UDim2.new(baseSize.X.Scale * 0.7, baseSize.X.Offset * 0.7, baseSize.Y.Scale * 0.7, baseSize.Y.Offset * 0.7)
+    local _heldDownSize = UDim2.new(baseSize.X.Scale * 0.9, baseSize.X.Offset * 0.9, baseSize.Y.Scale * 0.9, baseSize.Y.Offset * 0.9)
     local _hoveredSize = UDim2.new(baseSize.X.Scale * 1.1, baseSize.X.Offset * 1.1, baseSize.Y.Scale * 1.1, baseSize.Y.Offset * 1.1)
     local SizeTweenInfo = props.SizeTweenInfo or TweenInfo.new(.3, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out)
     local defaultChildren = {
@@ -156,6 +157,7 @@ function BaseComponents.ImageButton(
         SizeTweenInfo),
         BackgroundColor3 = props.BackgroundColor,
         BackgroundTransparency = props.BackgroundTransparency,
+        Interactable = props.Interactable,
     
         [Children] = if props.Children then table.move(props.Children, 1, #props.Children, #defaultChildren + 1, defaultChildren) else defaultChildren,
 

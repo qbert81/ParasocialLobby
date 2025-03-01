@@ -24,7 +24,19 @@ struct PlayerData {
     DeveloperProductPurchases : map {[string]: u16}
 }
 
+
+
 function FetchPlayerData {
     Yield: Coroutine,
+    Return: PlayerData?
+}
+function PurchaseInventoryItem {
+    Yield: Coroutine,
+    Data : (u8, string),
+    Return: PlayerData?
+}
+function EquipItemAtIndex {
+    Yield: Coroutine,
+    Data : (u8, u8, string),
     Return: PlayerData?
 }

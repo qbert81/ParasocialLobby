@@ -15,7 +15,7 @@ CONFIG.sectionColors = {
 }
 
 CONFIG.defaultCornerRadius = UDim.new(0,15)
-CONFIG.font = Enum.Font.Arial
+CONFIG.font = Enum.Font.DenkOne
 CONFIG.primaryColor = Color3.new(0.113725, 0.113725, 0.113725)
 CONFIG.lighterColor = Color3.new(0.352941, 0.352941, 0.352941)
 return CONFIG

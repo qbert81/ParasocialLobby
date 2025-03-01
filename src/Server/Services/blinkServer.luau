@@ -149,6 +149,8 @@ local Queue: any = {
 }
 
 Queue.Reliable[0] = table.create(256)
+Queue.Reliable[1] = table.create(256)
+Queue.Reliable[2] = table.create(256)
 export type ItemMap = {[number]: boolean}
 export type EquippedMap = {[number]: number}
 export type PlayerData = { Gadgets: {[number]: boolean}, EquippedGadgets: {[number]: number}, Emotes: {[number]: boolean}, EquippedEmotes: {[number]: number}, Bits: number, Wins: number, FastestWin: number, Level: number, Xp: number, GamepassDictionary: {[string]: boolean}, DeveloperProductPurchases: {[string]: number} }
@@ -234,10 +236,191 @@ local function WriteFUNCTION_RETURN_FetchPlayerData(Value: { Gadgets: {[number]:
 	end
 end
 
+local function ReadFUNCTION_DATA_PurchaseInventoryItem(): (number, string)
+	-- Read BLOCK: 3 bytes
+	local BLOCK_START = Read(3)
+	local Value1 = buffer.readu8(RecieveBuffer, BLOCK_START + 0)
+	local Length = buffer.readu16(RecieveBuffer, BLOCK_START + 1)
+	local Value2 = buffer.readstring(RecieveBuffer, Read(Length), Length)
+	return Value1, Value2
+end
+
+local function WriteFUNCTION_RETURN_PurchaseInventoryItem(Value: { Gadgets: {[number]: boolean}, EquippedGadgets: {[number]: number}, Emotes: {[number]: boolean}, EquippedEmotes: {[number]: number}, Bits: number, Wins: number, FastestWin: number, Level: number, Xp: number, GamepassDictionary: {[string]: boolean}, DeveloperProductPurchases: {[string]: number} }?, InvocationIdentifier: number): ()
+	-- Allocate BLOCK: 4 bytes
+	local BLOCK_START = Allocate(4)
+	buffer.writeu8(SendBuffer, BLOCK_START + 0, 1)
+	buffer.writeu8(SendBuffer, BLOCK_START + 1, InvocationIdentifier)
+	buffer.writeu8(SendBuffer, BLOCK_START + 2, 1)
+	buffer.writeu8(SendBuffer, BLOCK_START + 3, Value ~= nil and 1 or 0)
+	if Value ~= nil then
+		-- Allocate BLOCK: 32 bytes
+		local BLOCK_START = Allocate(32)
+		local Elements_2 = 0
+		for Key_2, Element_2 in Value.Gadgets do
+			Elements_2 += 1
+			local OFFSET_0 = Allocate(1)
+			buffer.writeu8(SendBuffer, OFFSET_0, Key_2)
+			local OFFSET_1 = Allocate(1)
+			buffer.writeu8(SendBuffer, OFFSET_1, Element_2 and 1 or 0)
+		end
+		buffer.writeu16(SendBuffer, BLOCK_START + 0, Elements_2)
+		local Elements_2 = 0
+		for Key_2, Element_2 in Value.EquippedGadgets do
+			Elements_2 += 1
+			local OFFSET_0 = Allocate(1)
+			buffer.writeu8(SendBuffer, OFFSET_0, Key_2)
+			local OFFSET_1 = Allocate(1)
+			buffer.writeu8(SendBuffer, OFFSET_1, Element_2)
+		end
+		buffer.writeu16(SendBuffer, BLOCK_START + 2, Elements_2)
+		local Elements_2 = 0
+		for Key_2, Element_2 in Value.Emotes do
+			Elements_2 += 1
+			local OFFSET_0 = Allocate(1)
+			buffer.writeu8(SendBuffer, OFFSET_0, Key_2)
+			local OFFSET_1 = Allocate(1)
+			buffer.writeu8(SendBuffer, OFFSET_1, Element_2 and 1 or 0)
+		end
+		buffer.writeu16(SendBuffer, BLOCK_START + 4, Elements_2)
+		local Elements_2 = 0
+		for Key_2, Element_2 in Value.EquippedEmotes do
+			Elements_2 += 1
+			local OFFSET_0 = Allocate(1)
+			buffer.writeu8(SendBuffer, OFFSET_0, Key_2)
+			local OFFSET_1 = Allocate(1)
+			buffer.writeu8(SendBuffer, OFFSET_1, Element_2)
+		end
+		buffer.writeu16(SendBuffer, BLOCK_START + 6, Elements_2)
+		buffer.writeu32(SendBuffer, BLOCK_START + 8, Value.Bits)
+		buffer.writeu16(SendBuffer, BLOCK_START + 12, Value.Wins)
+		buffer.writef64(SendBuffer, BLOCK_START + 14, Value.FastestWin)
+		buffer.writeu16(SendBuffer, BLOCK_START + 22, Value.Level)
+		buffer.writeu32(SendBuffer, BLOCK_START + 24, Value.Xp)
+		local Elements_2 = 0
+		for Key_2, Element_2 in Value.GamepassDictionary do
+			Elements_2 += 1
+			local Length = #Key_2
+			local OFFSET_0 = Allocate(2)
+			buffer.writeu16(SendBuffer, OFFSET_0, Length)
+			Allocate(Length)
+			buffer.writestring(SendBuffer, SendOffset, Key_2, Length)
+			local OFFSET_1 = Allocate(1)
+			buffer.writeu8(SendBuffer, OFFSET_1, Element_2 and 1 or 0)
+		end
+		buffer.writeu16(SendBuffer, BLOCK_START + 28, Elements_2)
+		local Elements_2 = 0
+		for Key_2, Element_2 in Value.DeveloperProductPurchases do
+			Elements_2 += 1
+			local Length = #Key_2
+			local OFFSET_0 = Allocate(2)
+			buffer.writeu16(SendBuffer, OFFSET_0, Length)
+			Allocate(Length)
+			buffer.writestring(SendBuffer, SendOffset, Key_2, Length)
+			local OFFSET_1 = Allocate(2)
+			buffer.writeu16(SendBuffer, OFFSET_1, Element_2)
+		end
+		buffer.writeu16(SendBuffer, BLOCK_START + 30, Elements_2)
+	end
+end
+
+local function ReadFUNCTION_DATA_EquipItemAtIndex(): (number, number, string)
+	-- Read BLOCK: 4 bytes
+	local BLOCK_START = Read(4)
+	local Value1 = buffer.readu8(RecieveBuffer, BLOCK_START + 0)
+	local Value2 = buffer.readu8(RecieveBuffer, BLOCK_START + 1)
+	local Length = buffer.readu16(RecieveBuffer, BLOCK_START + 2)
+	local Value3 = buffer.readstring(RecieveBuffer, Read(Length), Length)
+	return Value1, Value2, Value3
+end
+
+local function WriteFUNCTION_RETURN_EquipItemAtIndex(Value: { Gadgets: {[number]: boolean}, EquippedGadgets: {[number]: number}, Emotes: {[number]: boolean}, EquippedEmotes: {[number]: number}, Bits: number, Wins: number, FastestWin: number, Level: number, Xp: number, GamepassDictionary: {[string]: boolean}, DeveloperProductPurchases: {[string]: number} }?, InvocationIdentifier: number): ()
+	-- Allocate BLOCK: 4 bytes
+	local BLOCK_START = Allocate(4)
+	buffer.writeu8(SendBuffer, BLOCK_START + 0, 2)
+	buffer.writeu8(SendBuffer, BLOCK_START + 1, InvocationIdentifier)
+	buffer.writeu8(SendBuffer, BLOCK_START + 2, 1)
+	buffer.writeu8(SendBuffer, BLOCK_START + 3, Value ~= nil and 1 or 0)
+	if Value ~= nil then
+		-- Allocate BLOCK: 32 bytes
+		local BLOCK_START = Allocate(32)
+		local Elements_2 = 0
+		for Key_2, Element_2 in Value.Gadgets do
+			Elements_2 += 1
+			local OFFSET_0 = Allocate(1)
+			buffer.writeu8(SendBuffer, OFFSET_0, Key_2)
+			local OFFSET_1 = Allocate(1)
+			buffer.writeu8(SendBuffer, OFFSET_1, Element_2 and 1 or 0)
+		end
+		buffer.writeu16(SendBuffer, BLOCK_START + 0, Elements_2)
+		local Elements_2 = 0
+		for Key_2, Element_2 in Value.EquippedGadgets do
+			Elements_2 += 1
+			local OFFSET_0 = Allocate(1)
+			buffer.writeu8(SendBuffer, OFFSET_0, Key_2)
+			local OFFSET_1 = Allocate(1)
+			buffer.writeu8(SendBuffer, OFFSET_1, Element_2)
+		end
+		buffer.writeu16(SendBuffer, BLOCK_START + 2, Elements_2)
+		local Elements_2 = 0
+		for Key_2, Element_2 in Value.Emotes do
+			Elements_2 += 1
+			local OFFSET_0 = Allocate(1)
+			buffer.writeu8(SendBuffer, OFFSET_0, Key_2)
+			local OFFSET_1 = Allocate(1)
+			buffer.writeu8(SendBuffer, OFFSET_1, Element_2 and 1 or 0)
+		end
+		buffer.writeu16(SendBuffer, BLOCK_START + 4, Elements_2)
+		local Elements_2 = 0
+		for Key_2, Element_2 in Value.EquippedEmotes do
+			Elements_2 += 1
+			local OFFSET_0 = Allocate(1)
+			buffer.writeu8(SendBuffer, OFFSET_0, Key_2)
+			local OFFSET_1 = Allocate(1)
+			buffer.writeu8(SendBuffer, OFFSET_1, Element_2)
+		end
+		buffer.writeu16(SendBuffer, BLOCK_START + 6, Elements_2)
+		buffer.writeu32(SendBuffer, BLOCK_START + 8, Value.Bits)
+		buffer.writeu16(SendBuffer, BLOCK_START + 12, Value.Wins)
+		buffer.writef64(SendBuffer, BLOCK_START + 14, Value.FastestWin)
+		buffer.writeu16(SendBuffer, BLOCK_START + 22, Value.Level)
+		buffer.writeu32(SendBuffer, BLOCK_START + 24, Value.Xp)
+		local Elements_2 = 0
+		for Key_2, Element_2 in Value.GamepassDictionary do
+			Elements_2 += 1
+			local Length = #Key_2
+			local OFFSET_0 = Allocate(2)
+			buffer.writeu16(SendBuffer, OFFSET_0, Length)
+			Allocate(Length)
+			buffer.writestring(SendBuffer, SendOffset, Key_2, Length)
+			local OFFSET_1 = Allocate(1)
+			buffer.writeu8(SendBuffer, OFFSET_1, Element_2 and 1 or 0)
+		end
+		buffer.writeu16(SendBuffer, BLOCK_START + 28, Elements_2)
+		local Elements_2 = 0
+		for Key_2, Element_2 in Value.DeveloperProductPurchases do
+			Elements_2 += 1
+			local Length = #Key_2
+			local OFFSET_0 = Allocate(2)
+			buffer.writeu16(SendBuffer, OFFSET_0, Length)
+			Allocate(Length)
+			buffer.writestring(SendBuffer, SendOffset, Key_2, Length)
+			local OFFSET_1 = Allocate(2)
+			buffer.writeu16(SendBuffer, OFFSET_1, Element_2)
+		end
+		buffer.writeu16(SendBuffer, BLOCK_START + 30, Elements_2)
+	end
+end
+
 if not RunService:IsRunning() then
 	local NOOP = function() end
 	local Returns = table.freeze({
 	FetchPlayerData = {
+		On = NOOP
+	},
+	PurchaseInventoryItem = {
+		On = NOOP
+	},
+	EquipItemAtIndex = {
 		On = NOOP
 	},
 	})
@@ -310,6 +493,32 @@ Reliable.OnServerEvent:Connect(function(Player: Player, Buffer: buffer, Instance
 				end
 				table.insert(Queue.Reliable[0], {Player, Value, InvocationIdentifier} :: {any})
 			end
+		elseif Index == 1 then
+			-- Read BLOCK: 1 bytes
+			local BLOCK_START = Read(1)
+			local InvocationIdentifier = buffer.readu8(RecieveBuffer, BLOCK_START + 0)
+			local Value1: number, Value2: string = ReadFUNCTION_DATA_PurchaseInventoryItem()
+			if Events.Reliable[1] ~= nil then
+				Events.Reliable[1](Player, Value1, Value2, InvocationIdentifier)
+			else
+				if #Queue.Reliable[1] > 256 then
+					warn("[Blink]: Event queue of \"PurchaseInventoryItem\" exceeded 256, did you forget to implement a listener?")
+				end
+				table.insert(Queue.Reliable[1], {Player, Value1, Value2, InvocationIdentifier} :: {any})
+			end
+		elseif Index == 2 then
+			-- Read BLOCK: 1 bytes
+			local BLOCK_START = Read(1)
+			local InvocationIdentifier = buffer.readu8(RecieveBuffer, BLOCK_START + 0)
+			local Value1: number, Value2: number, Value3: string = ReadFUNCTION_DATA_EquipItemAtIndex()
+			if Events.Reliable[2] ~= nil then
+				Events.Reliable[2](Player, Value1, Value2, Value3, InvocationIdentifier)
+			else
+				if #Queue.Reliable[2] > 256 then
+					warn("[Blink]: Event queue of \"EquipItemAtIndex\" exceeded 256, did you forget to implement a listener?")
+				end
+				table.insert(Queue.Reliable[2], {Player, Value1, Value2, Value3, InvocationIdentifier} :: {any})
+			end
 		end
 	end
 end)
@@ -354,6 +563,62 @@ local Returns = table.freeze({
 				Queue.Reliable[0] = nil
 				for Index, Arguments in EventQueue do
 					Events.Reliable[0](table.unpack(Arguments))
+				end
+			end)
+		end
+	},
+	PurchaseInventoryItem = {
+		On = function(Listener: (Player, number, string) -> ({ Gadgets: {[number]: boolean}, EquippedGadgets: {[number]: number}, Emotes: {[number]: boolean}, EquippedEmotes: {[number]: number}, Bits: number, Wins: number, FastestWin: number, Level: number, Xp: number, GamepassDictionary: {[string]: boolean}, DeveloperProductPurchases: {[string]: number} }?)): ()
+			Events.Reliable[1] = function(Player: Player, Value1: number, Value2: string, InvocationIdentifier: number): ()
+				local ReturnValue: { Gadgets: {[number]: boolean}, EquippedGadgets: {[number]: number}, Emotes: {[number]: boolean}, EquippedEmotes: {[number]: number}, Bits: number, Wins: number, FastestWin: number, Level: number, Xp: number, GamepassDictionary: {[string]: boolean}, DeveloperProductPurchases: {[string]: number} }?;
+				local Success, Error = pcall(function ()
+					ReturnValue = Listener(Player, Value1, Value2)
+				end)
+				Load(PlayersMap[Player])
+				if Success ~= true then
+					local Position = Allocate(3)
+					buffer.writeu8(SendBuffer, Position, 1)
+					buffer.writeu8(SendBuffer, Position + 1, InvocationIdentifier)
+					buffer.writeu8(SendBuffer, Position + 2, 0)
+					warn(`"PurchaseInventoryItem" encountered an error, {Error}`)
+				else
+					WriteFUNCTION_RETURN_PurchaseInventoryItem(ReturnValue, InvocationIdentifier)
+				end
+				PlayersMap[Player] = Save()
+			end
+			task.spawn(function (): ()
+				local EventQueue = Queue.Reliable[1] or {}
+				Queue.Reliable[1] = nil
+				for Index, Arguments in EventQueue do
+					Events.Reliable[1](table.unpack(Arguments))
+				end
+			end)
+		end
+	},
+	EquipItemAtIndex = {
+		On = function(Listener: (Player, number, number, string) -> ({ Gadgets: {[number]: boolean}, EquippedGadgets: {[number]: number}, Emotes: {[number]: boolean}, EquippedEmotes: {[number]: number}, Bits: number, Wins: number, FastestWin: number, Level: number, Xp: number, GamepassDictionary: {[string]: boolean}, DeveloperProductPurchases: {[string]: number} }?)): ()
+			Events.Reliable[2] = function(Player: Player, Value1: number, Value2: number, Value3: string, InvocationIdentifier: number): ()
+				local ReturnValue: { Gadgets: {[number]: boolean}, EquippedGadgets: {[number]: number}, Emotes: {[number]: boolean}, EquippedEmotes: {[number]: number}, Bits: number, Wins: number, FastestWin: number, Level: number, Xp: number, GamepassDictionary: {[string]: boolean}, DeveloperProductPurchases: {[string]: number} }?;
+				local Success, Error = pcall(function ()
+					ReturnValue = Listener(Player, Value1, Value2, Value3)
+				end)
+				Load(PlayersMap[Player])
+				if Success ~= true then
+					local Position = Allocate(3)
+					buffer.writeu8(SendBuffer, Position, 2)
+					buffer.writeu8(SendBuffer, Position + 1, InvocationIdentifier)
+					buffer.writeu8(SendBuffer, Position + 2, 0)
+					warn(`"EquipItemAtIndex" encountered an error, {Error}`)
+				else
+					WriteFUNCTION_RETURN_EquipItemAtIndex(ReturnValue, InvocationIdentifier)
+				end
+				PlayersMap[Player] = Save()
+			end
+			task.spawn(function (): ()
+				local EventQueue = Queue.Reliable[2] or {}
+				Queue.Reliable[2] = nil
+				for Index, Arguments in EventQueue do
+					Events.Reliable[2](table.unpack(Arguments))
 				end
 			end)
 		end

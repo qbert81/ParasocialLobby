@@ -61,7 +61,7 @@ local function menuScreenGui(
 					Children = {
 						scope:New("UIPadding") {
 							PaddingLeft = UDim.new(0.025,0),
-							PaddingTop = UDim.new(0.1,0),
+							PaddingTop = UDim.new(0.15,0),
 							PaddingBottom = UDim.new(0.05,0),
 							PaddingRight = UDim.new(0.025,0),
 						},

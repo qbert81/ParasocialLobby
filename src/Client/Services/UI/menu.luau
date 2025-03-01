@@ -30,7 +30,10 @@ local function Bits(uiValues : sharedValuesTable.sharedValuesTable) : Fusion.Chi
 	local scope = uiValues.scope 
 	return BaseComponents.ImageButton(scope, { --this is the close button
                 Name = "Close",
-                OnClick = function() uiValues.targetMenu:set("Shop") end,
+                OnClick = function() 
+                    uiValues.targetMenu:set("Shop")
+					uiValues.currentViewingMenu:set("Shop") 
+                end,
                 Layout = {
                     Size = UDim2.fromScale(.25, .5),
                     AnchorPoint = Vector2.new(.5,.5),
@@ -39,7 +42,7 @@ local function Bits(uiValues : sharedValuesTable.sharedValuesTable) : Fusion.Chi
                 },
                 CornerRadius = UDim.new(.3,0),
                 AspectRatio = 3,
-                BackgroundColor = Color3.new(0,0,0),
+                BackgroundColor = CONFIG.primaryColor,
                 Children = {
                     scope:New("TextLabel") {
                         Size = UDim2.fromScale(2/3, 1),
@@ -50,13 +53,13 @@ local function Bits(uiValues : sharedValuesTable.sharedValuesTable) : Fusion.Chi
                         Font = CONFIG.font,
                         TextScaled = true,
                         Text = scope:Computed(function(use) 
-                            return use(uiValues.playerData).Bits
+                            return use(uiValues.playerDataObject.bits) or 0
                         end)
                             
                     },
                     BaseComponents.ContainedImageLabel(scope, {
                         ContainerFrame = {
-                            BackgroundColor = Color3.new(0,0,0),
+                            BackgroundColor = Color3.new(0.000000, 0.000000, 0.000000),
                             BackgroundTransparency = 1,
                             Size = UDim2.fromScale(1, 1),
                             AnchorPoint = Vector2.new(.5,.5),
