@@ -76,8 +76,12 @@ SharedValuesTable.new = function() : sharedValuesTable
 
 	result.loaderTweenPase = result.scope:Value("Growing")
 	
-	result.currentViewingMenu = result.scope:Value("None")
+	result.currentViewingMenu = result.scope:Value("Shop")
 	result.targetMenu = result.scope:Value("None")
+
+	task.delay(1.5, function()
+		result.currentViewingMenu:set("None")
+	end)
 
 	result.vieiwngItem = result.scope:Value(nil)
 	result.equippingItem = result.scope:Value(nil)
