@@ -151,6 +151,8 @@ local Queue: any = {
 Queue.Reliable[0] = table.create(256)
 Queue.Reliable[1] = table.create(256)
 Queue.Reliable[2] = table.create(256)
+Queue.Reliable[3] = table.create(256)
+Queue.Reliable[4] = table.create(256)
 export type ItemMap = {[number]: boolean}
 export type EquippedMap = {[number]: number}
 export type PlayerData = { Gadgets: {[number]: boolean}, EquippedGadgets: {[number]: number}, Emotes: {[number]: boolean}, EquippedEmotes: {[number]: number}, Bits: number, Wins: number, FastestWin: number, Level: number, Xp: number, GamepassDictionary: {[string]: boolean}, DeveloperProductPurchases: {[string]: number} }
@@ -411,6 +413,22 @@ local function WriteFUNCTION_RETURN_EquipItemAtIndex(Value: { Gadgets: {[number]
 	end
 end
 
+local function ReadEVENT_Enqueue(): (Instance)
+	RecieveInstanceCursor += 1
+	local Value = RecieveInstances[RecieveInstanceCursor]
+	if (not Value) or typeof(Value) ~= "Instance" then error(`Expected an Instance, got {typeof(Value)} instead.`) end
+	if not Value:IsA("Instance") then error(`Expected an Instance of type "Instance", got "{Value.ClassName}" instead.`) end
+	return Value
+end
+
+local function ReadEVENT_Dequeue(): (Instance)
+	RecieveInstanceCursor += 1
+	local Value = RecieveInstances[RecieveInstanceCursor]
+	if (not Value) or typeof(Value) ~= "Instance" then error(`Expected an Instance, got {typeof(Value)} instead.`) end
+	if not Value:IsA("Instance") then error(`Expected an Instance of type "Instance", got "{Value.ClassName}" instead.`) end
+	return Value
+end
+
 if not RunService:IsRunning() then
 	local NOOP = function() end
 	local Returns = table.freeze({
@@ -421,6 +439,12 @@ if not RunService:IsRunning() then
 		On = NOOP
 	},
 	EquipItemAtIndex = {
+		On = NOOP
+	},
+	Enqueue = {
+		On = NOOP
+	},
+	Dequeue = {
 		On = NOOP
 	},
 	})
@@ -518,6 +542,26 @@ Reliable.OnServerEvent:Connect(function(Player: Player, Buffer: buffer, Instance
 					warn("[Blink]: Event queue of \"EquipItemAtIndex\" exceeded 256, did you forget to implement a listener?")
 				end
 				table.insert(Queue.Reliable[2], {Player, Value1, Value2, Value3, InvocationIdentifier} :: {any})
+			end
+		elseif Index == 3 then
+			local Value: Instance = ReadEVENT_Enqueue()
+			if Events.Reliable[3] ~= nil then
+				Events.Reliable[3](Player, Value)
+			else
+				if #Queue.Reliable[3] > 256 then
+					warn("[Blink]: Event queue of \"Enqueue\" exceeded 256, did you forget to implement a listener?")
+				end
+				table.insert(Queue.Reliable[3], {Player, Value} :: {any})
+			end
+		elseif Index == 4 then
+			local Value: Instance = ReadEVENT_Dequeue()
+			if Events.Reliable[4] ~= nil then
+				Events.Reliable[4](Player, Value)
+			else
+				if #Queue.Reliable[4] > 256 then
+					warn("[Blink]: Event queue of \"Dequeue\" exceeded 256, did you forget to implement a listener?")
+				end
+				table.insert(Queue.Reliable[4], {Player, Value} :: {any})
 			end
 		end
 	end
@@ -621,6 +665,30 @@ local Returns = table.freeze({
 					Events.Reliable[2](table.unpack(Arguments))
 				end
 			end)
+		end
+	},
+	Enqueue = {
+		On = function(Listener: (Player: Player, Value: Instance) -> ()): () -> ()
+			Events.Reliable[3] = Listener
+			for Index, Arguments in Queue.Reliable[3] do
+				Listener(table.unpack(Arguments))
+			end
+			Queue.Reliable[3] = {}
+			return function (): ()
+				Events.Reliable[3] = nil
+			end
+		end
+	},
+	Dequeue = {
+		On = function(Listener: (Player: Player, Value: Instance) -> ()): () -> ()
+			Events.Reliable[4] = Listener
+			for Index, Arguments in Queue.Reliable[4] do
+				Listener(table.unpack(Arguments))
+			end
+			Queue.Reliable[4] = {}
+			return function (): ()
+				Events.Reliable[4] = nil
+			end
 		end
 	},
 })

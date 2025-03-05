@@ -35,16 +35,14 @@ end
 local function playerRemoving(store : DocumentService.DocumentStore<any>, player : Player) : nil
 	local key : string = tostring(player.UserId)
 	local document = store:GetDocument(key)
-	print(document:GetCache())
 	if document:IsOpen() then
 		local suc, err = pcall(function()
 			document:Close()
-			print("RAN")
 		end)
 		if err then
 			warn(err)
-		else
-			print(suc)
+
+
 		end
 	end
 	return

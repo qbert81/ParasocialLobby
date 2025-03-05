@@ -416,6 +416,20 @@ local function ReadFUNCTION_RETURN_EquipItemAtIndex(): ({ Gadgets: {[number]: bo
 	return Value
 end
 
+local function WriteEVENT_Enqueue(Value: Instance): ()
+	-- Allocate BLOCK: 1 bytes
+	local BLOCK_START = Allocate(1)
+	buffer.writeu8(SendBuffer, BLOCK_START + 0, 3)
+	table.insert(SendInstances, Value or false :: any)
+end
+
+local function WriteEVENT_Dequeue(Value: Instance): ()
+	-- Allocate BLOCK: 1 bytes
+	local BLOCK_START = Allocate(1)
+	buffer.writeu8(SendBuffer, BLOCK_START + 0, 4)
+	table.insert(SendInstances, Value or false :: any)
+end
+
 if not RunService:IsRunning() then
 	local NOOP = function() end
 	local Returns = table.freeze({
@@ -427,6 +441,12 @@ if not RunService:IsRunning() then
 	},
 	EquipItemAtIndex = {
 		Invoke = NOOP
+	},
+	Enqueue = {
+		Fire = NOOP
+	},
+	Dequeue = {
+		Fire = NOOP
 	},
 	})
 	return Returns :: BLINK_EVENTS_SYMBOL
@@ -571,6 +591,16 @@ local Returns = table.freeze({
 				error("There was an exception while processing \"EquipItemAtIndex\".")
 			end
 			return ReturnValue
+		end
+	},
+	Enqueue = {
+		Fire = function(Value: Instance): ()
+			WriteEVENT_Enqueue(Value)
+		end
+	},
+	Dequeue = {
+		Fire = function(Value: Instance): ()
+			WriteEVENT_Dequeue(Value)
 		end
 	},
 })

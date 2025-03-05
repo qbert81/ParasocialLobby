@@ -75,7 +75,6 @@ end
 
 local CoerceToNumber = function(value : any) : number
 	value = tonumber(value)
-	print(Guard.Number(value), value)
 	return Guard.Number(value)
 end
 PlayerDataFormat.DataInterface = {
@@ -114,7 +113,6 @@ end
  
 --CAN ERROR!!!!!!!
 function PlayerDataFormat.EquipItem(playerData : PlayerData, itemID : number, indexToEquipAt : number, cat : string) : nil
-	print("RUNNING")
 	local invCat = VerifyInvCategory(cat)
 	if invCat == nil then
 		error("Invalid inventory category") 
@@ -151,7 +149,6 @@ end
 
 --CAN ERROR!!!!!!!
 function PlayerDataFormat.PurchaseInventoryItem(playerData : PlayerData, itemID : number, cat : string) : nil
-	print("RUNNING")
 	local invCat = VerifyInvCategory(cat)
 	if invCat == nil then
 		error("INVENTORY CATEGORY INVALID")

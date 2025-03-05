@@ -22,7 +22,6 @@ local function dataCheck(value: any): DataSchema
     local formatted : {[any] : any} = {}
 
     for i, v in value  do
-        print(i, v)
         formatted[i] = PlayerDataFormat.DataInterface[i](v)
     end
 	return formatted
@@ -49,10 +48,8 @@ DataMutate.init(store)
 --connect to Communications
 blinkServer.FetchPlayerData.On(function(player: Player)
         local playerDocument : DocumentService.Document<any> = store:GetDocument(tostring(player.UserId))
-        print(playerDocument)
         if playerDocument then
             local result = playerDocument:GetCache()
-            print(result)
             if result then
                 return result
             else

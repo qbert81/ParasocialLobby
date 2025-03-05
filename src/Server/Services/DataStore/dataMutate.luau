@@ -36,9 +36,7 @@ local function mutateDocument(
 		end
 		
 		-- Clone the table and any sub-tables we intend to edit
-		print(playerDocument:GetCache())
 		local playerDataClone = deepCopy(playerDocument:GetCache())
-		print(playerDataClone)
 		local success, err = pcall(function()
 			mutateFunction(playerDataClone :: any)
 		end)
@@ -50,7 +48,6 @@ local function mutateDocument(
 
 		-- Save the mutated data
 		playerDocument:SetCache(playerDataClone)
-		print(playerDocument:GetCache())
 		return playerDataClone
 	end
 	return nil

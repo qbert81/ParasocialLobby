@@ -40,3 +40,17 @@ function EquipItemAtIndex {
     Data : (u8, u8, string),
     Return: PlayerData?
 }
+
+event Enqueue {
+    from: Client,
+    type: Reliable,
+    call: SingleSync,
+    data: Instance,
+}
+
+event Dequeue {
+    from: Client,
+    type: Reliable,
+    call: SingleSync,
+    data: Instance,
+}
