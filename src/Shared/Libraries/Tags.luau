@@ -5,6 +5,9 @@ tags.CLS = {
 	QueuingArea = "QueueingArea"
 }
 
-tags.Attributes = {}
+tags.Attributes = {
+	PlayerIsInQueue = "PlayerIsMatchmaking",
+	QueuePartMaxPlayers = "QueuePartMaxPlayers",
+}
 
 return tags

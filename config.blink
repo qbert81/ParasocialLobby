@@ -45,7 +45,7 @@ event Enqueue {
     from: Client,
     type: Reliable,
     call: SingleSync,
-    data: Instance,
+    data: nil,
 }
 
 event Dequeue {
@@ -54,3 +54,5 @@ event Dequeue {
     call: SingleSync,
     data: Instance,
 }
+
+

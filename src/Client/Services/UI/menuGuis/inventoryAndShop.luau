@@ -368,7 +368,7 @@ local function HeaderTextLabel(scope : Fusion.Scope, props : {
 		BackgroundTransparency = 1,
 		TextColor3 = Color3.new(1,1,1),
 		TextScaled = true,
-		Font = CONFIG.font,
+		FontFace = CONFIG.font,
 		Text = props.text,
 		Size = props.size,
 		TextXAlignment = Enum.TextXAlignment.Left,
@@ -470,7 +470,7 @@ local function Container(uiValues : sharedValuesTable.sharedValuesTable, props :
 				CornerRadius = CONFIG.defaultCornerRadius
 			},
 			scope:New("TextLabel") {
-				Font = CONFIG.font,
+				FontFace = CONFIG.font,
 				Size = UDim2.fromScale(.7, .2),
 				AnchorPoint = Vector2.new(.5,.5),
 				Position = UDim2.fromScale(.5, .1),
@@ -486,7 +486,7 @@ local function Container(uiValues : sharedValuesTable.sharedValuesTable, props :
 				end)
 			},
 			scope:New("TextLabel") {
-				Font = CONFIG.font,
+				FontFace = CONFIG.font,
 				Size = UDim2.fromScale(.9, .3),
 				AnchorPoint = Vector2.new(.5,.5),
 				Position = UDim2.fromScale(.5, .4),
@@ -570,7 +570,7 @@ local function Container(uiValues : sharedValuesTable.sharedValuesTable, props :
 						TextScaled = true,
 						BackgroundTransparency = 1,
 						TextColor3 = Color3.new(1,1,1),
-						Font = Enum.Font.ArialBold,
+						FontFace = Enum.Font.ArialBold,
 						TextXAlignment = scope:Computed(function(use)
 							if use(uiValues.vieiwngItem) and use(menuRenderData.allTable[use(uiValues.vieiwngItem) :: number]) ~= true then
 								return Enum.TextXAlignment.Center

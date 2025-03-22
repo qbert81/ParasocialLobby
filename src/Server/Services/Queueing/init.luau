@@ -1,46 +1,45 @@
 --!strict
 local RSLib = game:GetService("ReplicatedStorage").Shared.Libraries
+local Players = game:GetService("Players")
 local Tags = require(RSLib.Tags)
+local PlaceIds = require(RSLib.PlaceIds)
 local QueueConfig = require(script.config)
 local TeleportService = game:GetService("TeleportService")
 local blinkServer = require(script.Parent.blinkServer)
 local CLS = game:GetService("CollectionService")
 --When a player joins the countdown starts
 
+local defaultCountdown = 15
+
 export type QueueingArea = { --QueueingAreas are identified by their unique basepart
 	part: BasePart,
 
-	--from config : searched by part name yuh
-	config: QueueConfig.QueueConfig,
-
 	--storing current values
 	currentPlayersList: { [Player]: boolean? }, --use table.insert or table.remove so we can use # table opperator
-	currentPlayersNumber: number,
 
 	numberValues: {
 		currentPlayers: NumberValue,
+		maxPlayers: NumberValue,
 		countdown: NumberValue,
 	},
 
 	teleporting: BoolValue,
-	teleported : boolean,
 
-	EnqueuePlayer: (QueueingArea, Player) -> boolean, --returns success	| not exposed to client see upper level class
-	DequeuePlayer: (QueueingArea, Player) -> boolean, --returns success	| not exposed to client see upper level class
+	ProcessTouchingHRPS: (QueueingArea, {BasePart}) -> nil, --returns success	| not exposed to client see upper level class
+	Teleport : (QueueingArea) -> nil,
+
 }
 
 export type QueueingSystem = {
 	Running: boolean,
 
-	PlayersWaitingToEnqueue: { [Player]: BasePart },
-	PlayersWaitingToDequeue: { [Player]: boolean },
-
-	PlayersEnqueued: { [Player]: BasePart }, --index by BP for efficient lookup times
 	QueueingAreas: { [BasePart]: QueueingArea },
 
-	ProcessPending: (QueueingSystem) -> nil,
-	EnqueuePlayer: (QueueingSystem, Player, BasePart) -> boolean, --returns success
-	DequeuePlayer: (QueueingSystem, Player, BasePart) -> boolean, --returns success
+	PlayerHRPs : {[Player] : BasePart},
+
+	PlayerCharConnections : {[Player] : {cAdded : RBXScriptConnection, cRemoving : RBXScriptConnection}},
+	OverlapParams : OverlapParams,
+
 	Start: (QueueingSystem) -> nil,
 }
 
@@ -48,21 +47,13 @@ export type QueueingSystem = {
 local QueueingArea = {}
 QueueingArea.__index = QueueingArea
 
-function QueueingArea.new(part: BasePart)
+function QueueingArea.new(part: BasePart, maxPlayers : number?)
 	local self: QueueingArea = setmetatable({}, QueueingArea) :: any
-
-	local configFound: QueueConfig.QueueConfig? = QueueConfig[part.Name]
-	if configFound == nil then
-		configFound = QueueConfig.Default
-	end
-
-	self.config = configFound :: QueueConfig.QueueConfig
 
 	self.part = part
 	CLS:AddTag(part, Tags.CLS.QueuingArea)
 	self.currentPlayersList = {}
-	self.currentPlayersNumber = #self.currentPlayersList
-
+	print(maxPlayers)
 	local function createNumberValue(name: string): NumberValue
 		local nv = Instance.new("NumberValue")
 		nv.Name = name
@@ -75,41 +66,81 @@ function QueueingArea.new(part: BasePart)
 	self.teleporting.Name = "Teleporting"
 	self.teleporting.Value = false
 	self.teleporting.Parent = self.part
-	self.teleported = false
 
 	self.numberValues = {
 		countdown = createNumberValue("Countdown"),
 		currentPlayers = createNumberValue("CurrentPlayers"),
+		maxPlayers = createNumberValue("MaxPlayers"),
 	}
-
+	self.numberValues.countdown.Value = defaultCountdown
+	self.numberValues.maxPlayers.Value = maxPlayers or 4
 	return self
 end
 
-function QueueingArea:EnqueuePlayer(Player: Player): boolean
+function QueueingArea:Teleport() : nil
 	self = self :: QueueingArea
-	if self.teleporting.Value == true then
+	self.teleporting.Value = true
+	local function allPlayersGone() : boolean
+		for player, _ in self.currentPlayersList do
+			if Players:FindFirstChild(player.Name) then
+				return true
+			end
+		end
 		return false
 	end
-	self.currentPlayersList[Player] = true
-	self.currentPlayersNumber += 1
-	self.numberValues.currentPlayers.Value = self.numberValues.currentPlayers.Value + 1
-	if self.currentPlayersNumber >= self.config.maxPlayers then
-		self.teleporting.Value = true
-	end
-	return true
+	task.spawn(function()
+		local convertedPlayers : {Player} = {}
+		for i, _ in self.currentPlayersList do
+			table.insert(convertedPlayers, i)
+		end
+		local accessCode = TeleportService:ReserveServer(PlaceIds.InGame)
+		TeleportService:TeleportToPrivateServer(PlaceIds.InGame, accessCode, convertedPlayers)
+		repeat 
+			task.wait(1)
+		until allPlayersGone() == true
+		task.wait(1.5)
+		self.currentPlayersList = {}
+		self.numberValues.countdown.Value = QueueConfig.Default.countdownFrom
+		self.teleporting.Value = false
+	end)
+	return
 end
-
-function QueueingArea:DequeuePlayer(Player: Player): boolean
+function QueueingArea:ProcessTouchingHRPS(hrps : {BasePart}): nil
 	self = self :: QueueingArea
-	if self.currentPlayersList[Player] then
-		self.currentPlayersList[Player] = nil
-		self.currentPlayersNumber -= 1
-		self.numberValues.currentPlayers.Value = self.numberValues.currentPlayers.Value - 1
-		if self.currentPlayersNumber == 0 then
-			self.teleporting.Value = false
+	local playersTouchingForThisCheck : {[Player] : boolean} = {}
+	for i, hrp in hrps do
+		if self.teleporting.Value == true then 
+			return 
+		end
+		if hrp.Parent then
+			local player : Player = Players:GetPlayerFromCharacter(hrp.Parent :: any)
+			if player then
+				playersTouchingForThisCheck[player] = true
+				if self.currentPlayersList[player] ~= true then
+					self.currentPlayersList[player] = true
+					self.numberValues.currentPlayers.Value +=1
+				end
+				
+				if self.numberValues.currentPlayers.Value == self.numberValues.maxPlayers.Value then
+					print("Teleporting from here")
+					self:Teleport()
+				end
+			end
 		end
 	end
-	return true
+
+	if self.teleporting.Value == true then 
+		return 
+	end
+
+	for player, _ in self.currentPlayersList do
+		if playersTouchingForThisCheck[player] == nil then
+			self.currentPlayersList[player] = nil
+			self.numberValues.currentPlayers.Value -=1
+		end
+	end
+	return
+
 end
 
 --QUEUEING SYSTEM -------------------------------------------
@@ -117,13 +148,10 @@ local QueueingSystem = {}
 QueueingSystem.__index = QueueingSystem
 function QueueingSystem.new()
 	local self: QueueingSystem = setmetatable({}, QueueingSystem) :: any
-	self.PlayersWaitingToEnqueue = {}
-	self.PlayersWaitingToDequeue = {}
-	self.PlayersEnqueued = {}
 	self.QueueingAreas = {}
 
 	local function RegisterQueuingArea(part: BasePart)
-		self.QueueingAreas[part] = QueueingArea.new(part)
+		self.QueueingAreas[part] = QueueingArea.new(part, part:GetAttribute(Tags.Attributes.QueuePartMaxPlayers))
 	end
 
 	for i, v in game.Workspace.QueueingAreas:GetChildren() do
@@ -138,61 +166,43 @@ function QueueingSystem.new()
 		end
 	end)
 
-	game:GetService("Players").PlayerRemoving:Connect(function(player)
-		local bp: BasePart? = self.PlayersEnqueued[player]
-		if bp then
-			self:DequeuePlayer(player, bp)
-		end
-	end)
-	
-	blinkServer.Enqueue.On(function(player : Player, basepart : Instance)
-		if basepart:IsA("BasePart") then
-			self.PlayersWaitingToEnqueue[player] = basepart
-		end
-		return
+	self.OverlapParams = OverlapParams.new()
+	self.OverlapParams.FilterType = Enum.RaycastFilterType.Include
+	self.OverlapParams.FilterDescendantsInstances = {}
+
+
+	self.PlayerCharConnections = {}
+
+	self.PlayerHRPs = {}
+
+	Players.PlayerAdded:Connect(function(player : Player)
+		self.PlayerCharConnections[player] = {
+			cAdded = player.CharacterAdded:Connect(function(char : Model)
+				if char.PrimaryPart then
+					self.PlayerHRPs[player] = char.PrimaryPart
+				else
+					warn("No primary part for char of player", player)
+				end
+			end),
+			cRemoving = player.CharacterRemoving:Connect(function(char : Model)
+				self.PlayerHRPs[player] = nil
+			end)
+		}
 	end)
 
-	blinkServer.Dequeue.On(function(player : Player, basepart : Instance)
-		if basepart:IsA("BasePart") then
-			self.PlayersWaitingToDequeue[player] = true
+	Players.PlayerRemoving:Connect(function(player : Player)
+		local cTable = self.PlayerCharConnections[player]
+		if cTable then
+			for _, c in cTable :: {RBXScriptConnection} do
+				c:Disconnect()
+			end
 		end
-		return
+			
 	end)
+	
 	
 	self:Start()
 	return self
-end
-
-function QueueingSystem:EnqueuePlayer(player : Player, basePart : BasePart)
-	self = self :: QueueingSystem
-	local qa : QueueingArea = self.QueueingAreas[basePart]
-	local result = qa:EnqueuePlayer(player)
-	if result == true then
-		self.PlayersEnqueued[player] = basePart
-	end
-end
-function QueueingSystem:DequeuePlayer(player : Player, basePart : BasePart)
-	self = self :: QueueingSystem
-	local qa : QueueingArea = self.QueueingAreas[basePart]
-	local result = qa:DequeuePlayer(player)
-	if result == true then
-		self.PlayersEnqueued[player] = nil
-	end
-end
-
-function QueueingSystem:ProcessPending()
-	self = self :: QueueingSystem
-	for player, BasePart in self.PlayersWaitingToEnqueue do
-		self:EnqueuePlayer(player, BasePart)
-	end
-	self.PlayersWaitingToEnqueue = {}
-	for player, boolean in self.PlayersWaitingToDequeue do
-		local bp: BasePart? = self.PlayersEnqueued[player]
-		if bp then
-			self:DequeuePlayer(player, bp)
-		end
-	end
-	self.PlayersWaitingToDequeue = {}
 end
 
 local dt = 0.1
@@ -202,35 +212,27 @@ function QueueingSystem:Start()
 	task.spawn(function()
 		while self.Running == true do
 			task.wait(dt)
-			self:ProcessPending()
-
-			--update countdown
-			for part, qa in self.QueueingAreas do
+			local newFilterInstances : {Instance} = {}
+			for _, hrp in self.PlayerHRPs do
+				table.insert(newFilterInstances, hrp)
+			end
+			self.OverlapParams.FilterDescendantsInstances = newFilterInstances
+			for _, qa in self.QueueingAreas do
 				if qa.teleporting.Value == false then
-					if qa.currentPlayersNumber == 0 then
-						qa.numberValues.countdown.Value = qa.config.countdownFrom
+					if qa.numberValues.currentPlayers.Value == 0 then
+						qa.numberValues.countdown.Value = defaultCountdown
 					else
-						qa.numberValues.countdown.Value = math.max(qa.numberValues.countdown.Value - dt, 0)
-						if qa.numberValues.countdown.Value == 0 then
-							qa.teleporting.Value = true
-						end
+						qa.numberValues.countdown.Value -= dt
 					end
-				else
-					qa.numberValues.countdown.Value = 0
+					if qa.numberValues.countdown.Value <= 0 then
+						qa.numberValues.countdown.Value = 0
+						qa:Teleport()
+					else
+						qa:ProcessTouchingHRPS(game.Workspace:GetPartsInPart(qa.part, self.OverlapParams))
+					end
 				end
 			end
-
-			for part, qa in self.QueueingAreas do 
-				if qa.teleporting.Value == true and qa.teleported == false then
-					local players = {}
-					for player, _ in pairs(qa.currentPlayersList) do
-						table.insert(players, player)
-					end
-					local newServer = TeleportService:ReserveServer(qa.config.targetPlaceID)
-					TeleportService:TeleportToPrivateServer(qa.config.targetPlaceID, newServer, players)
-					qa.teleported = true
-				end
-			end
+			
 		end
 	end)
 end

@@ -15,7 +15,7 @@ local SharedValuesTable = {}
 
 type UsedAs<T> = Fusion.UsedAs<T>
 
-export type menu = "Gadgets" | "Emotes" | "None" | "Shop"
+export type menu = "Gadgets" | "Emotes" | "None" | "Shop" | "Matchmaking"
 export type loaderTweenPase = "Growing" | "Max" | "Shrinking" | "Min"
 
 export type fusionFormatedGadgets = {string}

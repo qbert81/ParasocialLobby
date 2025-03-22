@@ -6,7 +6,6 @@ local Tags = require(RSLib:WaitForChild("Tags"))
 local Types = require(script:WaitForChild("types"))
 
 --dependancyModules
-local hrpCollisions = require(script:WaitForChild("hrpCollisions"))
 local queueVisuals = require(script:WaitForChild("queueVisuals"))
 
 local QueueAreas : {[BasePart] : Types.QueueArea} = {}
@@ -16,6 +15,7 @@ local function RegisterQueuingArea(part : BasePart)
 	local newQueueArea : Types.QueueArea = {
 		part = part,
 		countdown = part:WaitForChild("Countdown") :: NumberValue,
+		maxPlayers = part:WaitForChild("MaxPlayers") :: NumberValue,
 		currentPlayers = part:WaitForChild("CurrentPlayers") :: NumberValue,
 		teleporting = part:WaitForChild("Teleporting") :: BoolValue
 	}
@@ -36,6 +36,6 @@ CLS:GetInstanceAddedSignal(Tags.CLS.QueuingArea):Connect(function(instance : Ins
 end)
 
 
-hrpCollisions.Start(QueueAreas)
+
 
 return {}

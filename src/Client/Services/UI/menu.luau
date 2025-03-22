@@ -50,7 +50,7 @@ local function Bits(uiValues : sharedValuesTable.sharedValuesTable) : Fusion.Chi
                         Position = UDim2.fromScale(4/6,.5),
                         BackgroundTransparency = 1,
                         TextColor3 = Color3.new(1,1,1),
-                        Font = CONFIG.font,
+                        FontFace = CONFIG.font,
                         TextScaled = true,
                         Text = scope:Computed(function(use) 
                             return use(uiValues.playerDataObject.bits) or 0
